@@ -15,17 +15,42 @@ It showcases how to create a clean, maintainable logging system using modern Jav
 - Compile-time safety for log events
 - Clean and maintainable logging API
 
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Java 17 or later (for records support)
+
+## Getting Started
+
+### Running the Project
+
+The project uses Gradle wrapper, so you don't need to have Gradle installed. Simply run:
+
+```bash
+# On Unix-like systems (Linux, macOS)
+./gradlew run
+
+# On Windows
+gradlew.bat run
+```
+
+This will compile and run the example application, demonstrating the structured logging functionality.
+
+## Project Structure
+
+- `src/main/java/com/github/rkondratowicz/`
+  - `Main.java` - Example usage
+  - `EventCatalog.java` - Predefined log events
+  - `lib/` - Core logging implementation
+    - `EventLogger.java` - Main logging class
+    - `EventLoggerFactory.java` - Logger factory
+    - `EventRecordHelper.java` - Record reflection helper
+    - `Event.java`, `AuditEvent.java`, `ErrorEvent.java` - Event interfaces
 
 ## Implementation Details
 
 ### Configuration
 
-The project uses Logback with JSON layout for structured logging:
+The project uses Logback with JSON layout for structured logging. The configuration is defined in `src/main/resources/logback.xml`:
 
 ```xml
 <configuration>
@@ -45,6 +70,20 @@ The project uses Logback with JSON layout for structured logging:
 </configuration>
 ```
 
+Key configuration points:
+- Uses `ConsoleAppender` to output logs to the console
+- Implements JSON layout using `JsonLayout` from logback-json-classic
+- Uses Jackson for JSON formatting
+- Timestamps are in UTC with millisecond precision
+- Root logging level is set to INFO
+- Each log entry is separated by a line separator
+
+To modify the logging behavior, you can:
+- Change the root level (e.g., to DEBUG for more verbose logging)
+- Add additional appenders (e.g., for file logging)
+- Customize the JSON format by modifying the layout properties
+- Add custom fields to the JSON output
+
 ### Example Implementation
 
 The project demonstrates how to create type-safe log events using records:
@@ -53,7 +92,7 @@ The project demonstrates how to create type-safe log events using records:
 public record MessageReceived(
     String messageId,
     String result
-) implements InfoEvent {
+) implements AuditEvent {
 }
 ```
 
@@ -62,8 +101,11 @@ And how to use them in your code:
 ```java
 private static final EventLogger log = EventLoggerFactory.getLogger(YourClass.class);
 
-// Log an event
-log.info(new MessageReceived(messageId, result));
+// Log an audit event
+log.audit(new MessageReceived(messageId, result));
+
+// Log an error event
+log.error(new Oopsie("123", exception));
 ```
 
 The output will look like this:
